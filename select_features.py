@@ -4,6 +4,7 @@ import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import roc_auc_score
+import argparse
 
 def rf_best_features(X_train, X_test, features, target, KList):
     rf_clf = RandomForestClassifier(n_estimators=300, n_jobs=-1)
@@ -76,16 +77,23 @@ def select_features(X_train, X_test, features, cat_features, target, KList):
         auc_all.append(auc)
     return features_all[np.argmax(auc_all)]
 
-validation = pd.read_csv('train_mean_target.csv', index_col=0)
-test = pd.read_csv('test_mean_target.csv', index_col=0)
-X_train = validation[(validation.track_num > 0)].copy()
-X_test  = validation[validation.track_num == 0].copy()
-target = 'is_listened'
-predictors = validation.columns.difference([target, 'name', 'track_num', 'title', 'listen_type', 'rating', 'sample_id'])
-cat_features = [col_name for col_name in validation.columns if col_name[-3:] == 'cat'] + \
-                ['user_id', 'genre_id', 'media_id', 'album_id', 'context_type', 'platform_name',
-                 'platform_family', 'user_gender', 'artist_id', 'radio', 'album_genre_id', 
-                 'disk_number', 'explicit_lyrics', 'track_position', 'time_of_day']    
-KList = (len(predictors) * np.array([0.25, 0.4, 0.8, 1.0])).astype(int)
-best_features = select_features(X_train, X_test, predictors, cat_features, target, KList)
-np.save('best_features.npy', best_features)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='select_features')
+    parser.add_argument('train_csv')
+    parser.add_argument('test_csv')
+    args = parser.parse_args()
+
+    validation = pd.read_csv(args.train_csv, index_col=0)
+    test = pd.read_csv(args.test_csv, index_col=0)
+    X_train = validation[(validation.track_num > 0)].copy()
+    X_test  = validation[validation.track_num == 0].copy()
+    target = 'is_listened'
+    predictors = validation.columns.difference([target, 'name', 'track_num', 'title', 'listen_type', 'rating', 'sample_id'])
+    cat_features = [col_name for col_name in validation.columns if col_name[-3:] == 'cat'] + \
+                    ['user_id', 'genre_id', 'media_id', 'album_id', 'context_type', 'platform_name',
+                     'platform_family', 'user_gender', 'artist_id', 'radio', 'album_genre_id', 
+                     'disk_number', 'explicit_lyrics', 'track_position', 'time_of_day']   
+
+    KList = (len(predictors) * np.array([0.25, 0.4, 0.8, 1.0])).astype(int)
+    best_features = select_features(X_train, X_test, predictors, cat_features, target, KList)
+    np.save('best_features.npy', best_features)
