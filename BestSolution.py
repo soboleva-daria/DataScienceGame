@@ -72,7 +72,7 @@ funcs = [np.mean, np.median, np.max, np.min]
 target = 'is_listened'
 
 
-print('0')
+'''print('0')
 for f in real_features:
     test = statistics_real_feature(train, test, combinations(cat_features , 1), f, funcs)
 
@@ -82,7 +82,8 @@ print ('2')
 test = smooth_mean_target(train, test, combinations(cat_features , 2), target)
 test.to_csv('test_smooth_mean_target_real_features.csv')
 print('test_shape:{}'.format(test.shape))
-print('test done')
+print('test done')'''
+test = pd.read_csv('test_smooth_mean_target_real_features.csv', index_col=0)
 
 ################################################################################################
 validation = []
@@ -315,12 +316,16 @@ ans.sort_values(by='sample_id', inplace=True)
 ans['sample_id'] = ans.sample_id.astype(int)
 ans.to_csv('ans_smooth_mean_target_real_features2.csv', index=False)
 
-ans = pd.read_csv('ans_smooth_mean_target_real_features.csv')['is_listened'].values
-ans1 = pd.read_csv('ans_smooth_mean_target_real_features1.csv')['is_listened'].values
-ans2 = pd.read_csv('ans_smooth_mean_target_real_features2.csv')['is_listened'].values
+ans = pd.read_csv('ans_smooth_mean_target_real_features.csv', index_col=0, squeeze=True)
+ans1 = pd.read_csv('ans_smooth_mean_target_real_features1.csv', index_col=0, squeeze=True)
+ans2 = pd.read_csv('ans_smooth_mean_target_real_features2.csv', index_col=0, squeeze=True)
 
-test[target] = (ans + ans1 + ans2) / 3
-mean_ans = test[['sample_id', target]].copy()
+ans /= ans.max()
+ans1 /= ans1.max()
+ans2 /= ans2.max()
+
+mean_ans = (ans + ans1 + ans2) / 3
+mean_ans = mean_ans.reset_index()
 mean_ans.sort_values(by='sample_id', inplace=True)
 mean_ans['sample_id'] = mean_ans.sample_id.astype(int)
 mean_ans.to_csv('mean_ans_smooth_mean_target_real_features.csv', index=False)
